@@ -115,11 +115,6 @@ Unix files to generate from BAM to sync files. All scripts are light and their t
 
 
 
-
-
-
-
-
 ### Intermediate Data
 
 #### snp_eff_cmh_fst_overlaps - SnpEff outputs and bed files from CMH and FST outputs (to be used for SnpEff) in all contrasts
@@ -137,48 +132,68 @@ The relative order of the scripts (from `.fastq` to `.bam` to `.sync`) is:
 
 #### QC & trimming adaptor and low quality sequence from sequence data
 
-`fastqc_dna.sh`
-`trim_rename.sh`
-`trim_fastqc.sh`
+`fastqc_dna.sh` 
+
+`trim_rename.sh` 
+
+`trim_fastqc.sh` 
 
 #### Index and map reads
-`index_bwa.sh`
-`bwa_map.sh`
+`index_bwa.sh` 
+
+`bwa_map.sh` 
 
 #### Samtools processing
 
 `sam_to_bam.sh`
+
 `filter.sh`
+
 `bam_fastqc.sh`
+
 `bam_quality_check.sh`
+
 `extractCoreGenomes.sh`
+
 `sort_byName.sh`
+
 `sort_byCoord.sh`
+
 `fixmated.sh`
+
 `markdup.sh`
 
 #### Picard and GATK
 `picard_RG.sh`
+
 `gatk_mark_indels.sh`
+
 `gatk_realign.sh`
 
 
 #### Merge replicates and create mpileup
 `ANC_merge.sh`
+
 `U_merge.sh`
+
 `C_merge.sh`
+
 `D_merge.sh`
+
 `make_mpileup.sh`
 
 #### SNP Calling
 
 `run_PoolSNP.sh`
+
 `repeat_masker.sh`
+
 `detectIndels_Kapun.sh`
 
 
 #### Mpileup to Sync
 `mp2sync.sh`
+
 `subset_syncByVCF.sh`
 
 #### FST
@@ -186,6 +201,7 @@ The relative order of the scripts (from `.fastq` to `.bam` to `.sync`) is:
 
 #### Annotation
 `local_snp_eff.sh`
+
 `snpEff.sh`
 
 #### Misc helper function
