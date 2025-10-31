@@ -1,0 +1,21 @@
+﻿stock_number,TestDates,ExperimentalBlock,TRiP,Construct_ID,vector,genes,FBgn,insertion_location,insertion_chromosome,full_strain_genotype,gene_native_chromosome,isoforms_targeted_of,Notes
+50893,02/07/2024,A,TRiP,,VALIUM20,Cpsf100,FBgn0027873,attP2,3,"y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.HMC02355}attP2/TM3, Sb[1]",,,
+61212,04/09/2024,B,TRiP,,VALIUM20,kek6,FBgn0039862,attP40,2,y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.HMJ22933}attP40,,,May be segregating CyO.
+57703,17/08/2024,C,TRiP,,VALIUM20,rg,FBgn0266098,attP40,2,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMC04892}attP40,,,
+57703,02/10/2024,D,TRiP,,VALIUM20,rg,FBgn0266098,attP40,2,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMC04892}attP40,,,
+33952,25/09/2024,E,TRiP,,VALIUM20,dally,FBgn0263930,attP2,3,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMS00905}attP2,,,
+40883,18/09/2024,F,TRiP,,VALIUM20,nlg1,FBgn0051146,attP40,2,y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.HMS02131}attP40/CyO,,,May be segregating sc[*] and/or sev[21].
+39006,14/08/2024,G,TRiP,,VALIUM20,Ptp99A,FBgn0004369,attP2,3,"y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMS01923}attP2/TM3, Sb[1]",,,Homozygotes may be present.
+28757,13/06/2024,H,TRiP,,VALIUM10,S6KL,FBgn0283473,attP2,3,y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.JF03185}attP2,,,
+64966,20/08/2024,I,TRiP,,VALIUM20,CG32264,FBgn0052264,attP2,3,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMC05840}attP2,,,
+34394,16/06/2024,J,TRiP,,VALIUM20,TGI,FBgn0036373,attP2,3,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMS00981}attP2,,,
+28744,10/06/2024,K,TRiP,,VALIUM10,dpr8,FBgn0052600,attP2,3,y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.JF03172}attP2,,,
+32863,29/08/2024,L,TRiP,,VALIUM20,cnc,FBgn0262975,attP2,3,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMS00650}attP2,,,"May be segregating TM3, Sb[1]."
+64524,12/07/2024,M,TRiP,,VALIUM20,sm,FBgn0003435,attP40,2,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMC05543}attP40,,,
+36722,20/07/2024,N,TRiP,,VALIUM20,WNT-2,FBgn0004360,attP2,3,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMS01613}attP2,,,
+34601,24/07/2024,O,TRiP,,VALIUM20,sfl,FBgn0020251,attP2,3,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMS00543}attP2,,,
+65911,15/07/2024,P,TRiP,,VALIUM20,axo,FBgn0262870,attP40,2,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMC06175}attP40,,,
+27539,07/07/2024,Q,TRiP,,VALIUM10,PK1-R,FBgn0038201,attP2,3,y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.JF02690}attP2,,,
+58310,09/07/2024,R,TRiP,,VALIUM20,CG9920,FBgn0038200,attP40,2,y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.HMJ22417}attP40,,,
+25836,04/06/2024,S,TRiP,,VALIUM10 ,GluRIIC,FBgn0046113,attP2,3,y[1] v[1]; P{y[+t7.7] v[+t1.8]=TRiP.JF01854}attP2,,,
+34321,29/07/2024,T,TRiP,,VALIUM20,fz,FBgn0001085,attP2,3,y[1] sc[*] v[1] sev[21]; P{y[+t7.7] v[+t1.8]=TRiP.HMS01308}attP2,,,

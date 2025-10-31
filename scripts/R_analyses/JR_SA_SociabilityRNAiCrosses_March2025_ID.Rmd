@@ -1,0 +1,632 @@
+---
+title: "Analysis of Sociability of the RNAi knockdown experiments performed by Jack Rosenbaum and Sana Abdallah"
+author: "Ian Dworkin"
+date: "`r format(Sys.time(),'%d %b %Y')`"
+output:
+  html_document:
+    toc: yes
+    number_sections: yes
+    keep_md: yes
+  pdf_document:
+    toc: yes
+editor_options:
+  chunk_output_type: console
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+options(digits = 3, show.signif.stars = FALSE, show.coef.Pvalues = TRUE)
+options(contrasts = c("contr.treatment", "contr.poly"))
+```
+
+## Load libraries
+
+```{r}
+library(glmmTMB)
+library(ggplot2)
+library(forcats)
+library(ggbeeswarm)
+library(broom.mixed)
+library(dplyr)
+library(dotwhisker)
+library(emmeans)
+library(DHARMa)
+library(car)
+```
+
+## Custom functions for this analysis
+
+Alternative ggplot themes for our use. Just puts the labels on the X axis at 45 degrees.
+```{r}
+theme_bw_alt_it <- function (base_size = 11, base_family = "", base_line_size = base_size/22, 
+    base_rect_size = base_size/22) 
+{
+    theme_grey(base_size = base_size, base_family = base_family, 
+        base_line_size = base_line_size, base_rect_size = base_rect_size) %+replace% 
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.95, hjust = 1, face = "italic", size = 12),
+              legend.position = "top",
+          panel.background = element_rect(fill = "white", colour = NA), 
+          panel.border = element_rect(fill = NA, colour = "grey20"), 
+          panel.grid = element_line(colour = "grey92"), 
+          panel.grid.minor = element_line(linewidth = rel(0.5)), 
+              strip.background = element_rect(fill = "grey85", colour = "grey20"), 
+          complete = TRUE)
+}
+```
+
+
+```{r}
+theme_bw_alt <- function (base_size = 11, base_family = "", base_line_size = base_size/22, 
+    base_rect_size = base_size/22) 
+{
+    theme_grey(base_size = base_size, base_family = base_family, 
+        base_line_size = base_line_size, base_rect_size = base_rect_size) %+replace% 
+        theme(axis.text.x = element_text(angle = 45, vjust = 0.95, hjust = 1, size = 12),
+              legend.position = "top",
+          panel.background = element_rect(fill = "white", colour = NA), 
+          panel.border = element_rect(fill = NA, colour = "grey20"), 
+          panel.grid = element_line(colour = "grey92"), 
+          panel.grid.minor = element_line(linewidth = rel(0.5)), 
+              strip.background = element_rect(fill = "grey85", colour = "grey20"), 
+          complete = TRUE)
+}
+```
+
+
+or 
+
+```{r}
+theme_light_alt <- function (base_size = 11, base_family = "", base_line_size = base_size/22, 
+    base_rect_size = base_size/22) 
+{
+    half_line <- base_size/2
+    theme_grey(base_size = base_size, base_family = base_family, 
+        base_line_size = base_line_size, base_rect_size = base_rect_size) %+replace% 
+        theme(axis.text.x = element_text(angle = 45, vjust = 1, hjust = 1),
+              legend.position = "top",
+              panel.background = element_rect(fill = "white", colour = NA), 
+              panel.border = element_rect(fill = NA, colour = "grey70", linewidth = rel(1)), 
+              panel.grid = element_line(colour = "grey87"), 
+              panel.grid.minor = element_line(linewidth = rel(0.25)), 
+              axis.ticks = element_line(colour = "grey70", linewidth = rel(0.5)), 
+              strip.background = element_rect(fill = "grey70", colour = NA), 
+              strip.text = element_text(colour = "white", 
+                size = rel(0.8), margin = margin(0.8 * half_line, 
+                  0.8 * half_line, 0.8 * half_line, 0.8 * half_line)), 
+              complete = TRUE)
+}
+```
+
+## Background
+
+This analysis conducted by Ian Dworkin, evaluating impacts of RNAi knockdown of genes in *Drosophila melanogaster* on sociability (social aggregation index).  This includes all of the data from experiments JR and SA conducted in 2024. The goal was to test whether genes identified as having variants with divergening allele frequences across lineages of  *D. melanogaster* artificially selected for differences in sociability, had functional consequences on sociability. See [Scott et al. 2022](https://doi.org/10.1111/evo.14370) for the study describing the artificial selection experiment.
+
+The sociability score for each assay is the *coefficient of dispersion* $\frac{\hat{\sigma}^2}{\hat{\mu}}$ for that assay plate at a given time point. 
+
+ 
+### read in data
+
+```{r}
+sociability_data_raw <- read.csv("../data/JR_SociabilityScores_AllCrosses_formatted.csv", header = TRUE)
+
+head(sociability_data_raw)
+str(sociability_data_raw)
+
+with(sociability_data_raw, 
+     table(ExperimentalBlock))
+```
+
+read in meta-data
+```{r}
+sociability_meta_data <- read.csv("../data/Construct_meta_data_JR_correct_EXPblocks.csv", header = TRUE)
+
+str(sociability_meta_data)
+```
+
+
+merge data
+```{r}
+temp_dat <- merge(sociability_data_raw, sociability_meta_data, by = "ExperimentalBlock")
+
+with(temp_dat, table(Sex))
+```
+
+Add a specific variable for rows that are of a particular RNAi knockdown
+```{r}
+temp_dat$RNAi <- with(temp_dat,
+                      ifelse(Treatment == "RNAi", genes, "control"))
+```
+
+
+Remove a redundant column
+```{r}
+names(temp_dat)
+```
+
+
+### formatting variables
+```{r}
+str(temp_dat)
+
+names(temp_dat)
+
+temp_dat[ ,c(1,2,4,5,6,8,9, 11, 12, 13,14, 15, 22)] <- lapply(temp_dat[ ,c(1,2,4,5,6,8,9, 11, 12, 13,14, 15, 22)], as.factor)
+
+temp_dat$TestDates <- as.Date(temp_dat$TestDates, format = "%d/%m/%Y")
+
+str(temp_dat)
+```
+
+Checking the variable names and levels
+```{r}
+levels(temp_dat$Sex)
+
+with(temp_dat, table(Sex))
+```
+
+```{r}
+levels(temp_dat$ExperimentalBlock)
+
+with(temp_dat, table(ExperimentalBlock))
+```
+
+```{r}
+levels(temp_dat$genes)
+
+with(temp_dat, table(genes))
+```
+
+The gene rugose was done twice using two different elav-GAL4 strains. These correspond to experimental block D and E. D has "sick looking flies", so it was redone with a weaker elav-GAL4. See the paper for more details.
+
+
+
+### Rename the data frame, and remove redundant copy of object
+
+Just for clarity of naming
+
+```{r}
+sociability_data <- temp_dat
+
+rm(temp_dat)
+```
+
+Setting reference level for the RNAi variable to the control level
+```{r}
+sociability_data$RNAi <- relevel(sociability_data$RNAi, "control")
+```
+
+### Checking the data
+
+Just making sure everything looks as it should (sample sizes by groups)
+```{r}
+with(sociability_data, 
+     table(ExperimentalBlock, Treatment, Sex))
+```
+
+
+```{r}
+with(sociability_data, 
+     table(ExperimentalBlock, Time, Treatment))
+```
+
+
+```{r}
+with(sociability_data, 
+     table(ExperimentalBlock, Day, Treatment))
+```
+
+
+### center timepoint for analysis
+```{r}
+sociability_data$Time_C <- sociability_data$Time - mean(sociability_data$Time)
+
+mean(sociability_data$Time_C)
+```
+
+### EDA plotting
+Checking data for outliers, etc.
+
+```{r}
+ggplot(sociability_data, aes( y = Soc_index, x = Sex:Treatment, colour = Sex, shape = Treatment)) +
+          geom_quasirandom(alpha = 0.35, size = 1) +
+          facet_wrap(~genes, nrow = 4) +
+          ylab("Sociability Score") +
+          xlab("Gene knockdown") +
+          theme_bw_alt()
+```
+
+
+```{r}
+ggplot(sociability_data[sociability_data$Treatment == "Control",], aes( y = Soc_index, x = ExperimentalBlock)) +
+          geom_quasirandom(alpha = 0.35, size = 1) +
+          facet_wrap(~Sex, nrow = 2) +
+          ylab("Sociability Score") +
+          xlab("") +
+          theme_bw_alt()
+```
+
+
+```{r}
+ggplot(sociability_data[sociability_data$Treatment == "Control",], aes( y = Soc_index, x = Day, colour = Sex)) +
+          geom_quasirandom(alpha = 0.5, size = 1) +
+          ylab("Sociability Score") +
+          facet_wrap(~ExperimentalBlock) +
+          theme_bw()
+```
+
+
+```{r}
+ggplot(sociability_data[sociability_data$Treatment == "Control",], aes( y = Soc_index, x = Time, colour = Sex)) +
+          geom_jitter(alpha = 0.25, size = 1, height = 0.01 , width = 0.25) +
+          ylab("Sociability Score") +
+          facet_wrap(~ExperimentalBlock) + 
+          theme_bw()
+```
+
+
+## fit model
+ 
+The model we are using (tweedie distributed with a log link)
+
+Re-ordering levels of sex for plotting below
+```{r}
+sociability_data$Sex <- relevel(sociability_data$Sex, "Male")
+```
+
+```{r}
+lmm_full_tweedie <- glmmTMB(Soc_index ~ Time_C + Sex*RNAi
+              + (1|ExperimentalBlock) + (1 | Day) + (1 + Time_C|Day:Arena) ,
+               family = tweedie(link = "log"), REML = FALSE,
+               data = sociability_data)
+
+summary(lmm_full_tweedie)
+```
+
+singular convergence warning (again!). See below for check that this has no meaningful impact on the fixed effect estimates we care about using a model with a slightly simpler random effects structure.
+
+### Check model assumptions
+```{r}
+lmm_full_tweedie_simulationOutput <- simulateResiduals(fittedModel = lmm_full_tweedie)
+
+plot(lmm_full_tweedie_simulationOutput, 
+     quantreg = FALSE)
+
+plotQQunif(lmm_full_tweedie_simulationOutput, 
+           testUniformity = TRUE, testOutliers = TRUE, testDispersion = TRUE)
+
+hist(lmm_full_tweedie_simulationOutput)
+```
+
+
+### check consistency of estimates
+slightly simpler model to deal with the singular convergence. Removed random slopes for time effect for each arena.
+```{r}
+lmm_reduced_tweedie <- glmmTMB(Soc_index ~ Time_C + Sex*RNAi
+              + (1|ExperimentalBlock) + (1 | Day) + (1|Day:Arena) ,
+               family = tweedie(link = "log"), REML = FALSE,
+               data = sociability_data)
+```
+
+
+```{r}
+mod1_mb <- tidy(lmm_full_tweedie, conf.int = TRUE, effects = "fixed")
+
+mod2_mb <- tidy(lmm_reduced_tweedie, conf.int = TRUE, effects = "fixed")
+```
+
+Plot estimates together
+```{r}
+mod_comb <- bind_rows(full = mod1_mb, reduced = mod2_mb, .id = "model") %>%
+    filter(effect == "fixed")
+
+dwplot(mod_comb) + geom_vline(xintercept = 0, lty = 2) +
+  theme_bw()
+```
+
+Virtually no impact on estimates. The singular convergence warning does not seem to be having any impact on the fixed effect estimates.
+
+
+### Model estimates and contrasts
+```{r}
+model_estimates <- emmeans(lmm_full_tweedie, ~ RNAi | Sex, type = "response") 
+
+model_estimates
+
+plot(model_estimates, horizontal = FALSE) + 
+  xlab("Estimated Sociability Score") +
+  ylab("RNAi") + 
+  theme_bw_alt()
+```
+The above plot shows default 95% CI.
+
+
+#### Plotting adjustment for figure  to enable frequentist interpretation
+For the actual paper, we would need to adjust this in a few ways. First add a transparent box showing where the CIs are. 
+
+Second, assuming we want readers who care about frequentist interpretations to "read" the figure in a way consistent with that interpretation, adjust CIs so that overlap of confidence intervals between control estimate and each RNAi perturbation is consistent with "not significant at $\alpha = 0.05$". So we would need 0.834 intervals, instead of standard 95% intervals. 
+
+(Third) we also need to adjust intervals with a dunnett adjustment for the 19 comparisons to the control group.  This is no longer in the code as it did not look like it was doing it correctly, and I am trying to figure it out. I may recommend just using the actual contrasts themselves, where the Dunnett adjustment is working as expected. 
+
+
+```{r}
+model_estimates_alt <- emmeans(lmm_full_tweedie, ~ RNAi|Sex, 
+                               type = "response",
+                               interval = "confidence",
+                               level = 0.95) 
+
+model_estimates_alt
+```
+
+
+A basic plot
+```{r}
+plot(model_estimates_alt, horizontal = FALSE) + 
+  xlab("Estimated Sociability Score") +
+  ylab("RNAi") + 
+  theme_bw_alt()
+```
+
+
+A fancier version of the plot
+```{r}
+control_dat <- as.data.frame(confint(model_estimates_alt)) %>% filter(RNAi == "control")
+
+model_estimates_alt_df <- as.data.frame(confint(model_estimates_alt))
+```
+
+
+```{r}
+ggplot(model_estimates_alt_df, aes(y = response, x = RNAi)) + 
+  geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_rect( aes(ymin = asymp.LCL, ymax = asymp.UCL), 
+    xmin = -Inf, xmax = Inf, alpha = 0.15, 
+    data = control_dat) + 
+  facet_wrap(~Sex, nrow = 2, strip.position = "right") +
+  xlab("Gene knockdown") +
+  ylab("Sociability score") +
+  theme_bw_alt() +
+  theme(axis.text.x = element_text(face = "italic", angle = 50))
+```
+
+
+re-ordering of RNAi lines by sociability score for the plot
+```{r}
+ggplot(model_estimates_alt_df, aes(y = response, x = fct_reorder2(RNAi, Sex, response, .desc = FALSE))) + 
+  geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_rect( aes(ymin = asymp.LCL, ymax = asymp.UCL), 
+    xmin = -Inf, xmax = Inf, alpha = 0.15, 
+    data = control_dat) + 
+  facet_wrap(~Sex, nrow = 2, strip.position = "right") +
+  xlab("RNAi") +
+  ylab("Sociability score") +
+  theme_bw_alt() +
+  theme(axis.text.x = element_text(face = "italic", angle = 50, vjust = 0.95))
+```
+
+
+### Treatment contrasts plots
+I prefer plotting the treatment contrasts, as I find it the clearest way of making comparisons.
+
+Treatment contrasts (log scale, not response): This has the advantage of contrasting everything to zero, and RNAi that reduce sociability are not squished between 0 and 1. But it can be harder to interpet since it is on the log scale. As it is on a natural log scale, small changes are approximately on the scale of % change (assuming the sociability score is truly a ratio variable). So a  reduction of about 0.25 on the log scale represents $\sim 25\%$ decrease in sociability of the RNAi line compared with the controls. The Dunnett correction for multiple comparisons is performed by default for these contrasts.
+
+```{r}
+model_estimates_log <- emmeans(lmm_full_tweedie, ~ RNAi | Sex) 
+
+treatment_contrasts_mod1_log <- contrast(model_estimates_log, "trt.vs.ctrl1")
+
+confint(treatment_contrasts_mod1_log)
+```
+
+
+```{r}
+plot(treatment_contrasts_mod1_log, horizontal = FALSE) + 
+  geom_vline(xintercept = 0, lty = 2, alpha = 0.5) +
+  xlab("contrast estimate") +
+  ylab("RNAi contrast") +
+  theme_bw_alt() +
+  theme(axis.text.x = element_text(face = "italic", angle = 50))
+```
+
+
+A fancier version of the treatment contrast plots
+```{r}
+treatment_contrasts_mod1_log_df <- as.data.frame(confint(treatment_contrasts_mod1_log))
+```
+
+
+
+
+```{r}
+ggplot(treatment_contrasts_mod1_log_df, aes(y = estimate, x = contrast)) + 
+  geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_hline(yintercept = 0, lty = 2, alpha = 0.5) +
+  facet_wrap(~Sex, nrow = 2, strip.position = "right") +
+  xlab("Gene Knockdown") +
+  ylab("treatment contrast") +
+  theme_bw_alt() +
+  theme(axis.text.x = element_text(face = "italic", angle = 50))
+```
+
+
+Same plot, re-ordered by direction & magnitude of effects
+
+Let's first clean up the names of genes to use for the X axis
+
+```{r}
+gene_names <- as.character(treatment_contrasts_mod1_log_df$contrast)
+gene_names2 <- gsub(pattern = " - control", replacement = "", x = gene_names)
+gene_names3 <- gsub(pattern = "\\(", replacement = "", x = gene_names2)
+gene_names4 <- gsub(pattern = "\\)", replacement = "", x = gene_names3)
+
+
+treatment_contrasts_mod1_log_df$genes <- gene_names4
+```
+
+I think this is the version we are using for the paper, showing the contrasts by sex as the sex differences are very stark.
+
+```{r}
+ggplot(treatment_contrasts_mod1_log_df, aes(y = estimate, x = fct_reorder2(genes, Sex, estimate, .desc = FALSE))) + 
+  geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_hline(yintercept = 0, lty = 2, alpha = 0.5) +
+  facet_wrap(~Sex, nrow = 2, strip.position = "right") +
+  xlab("RNAi") +
+  ylab("∆Sociability Score (RNAi - control)") +
+  theme_bw_alt() +
+  theme(axis.text.x = element_text(face = "italic", angle = 50, vjust = 0.95))
+```
+
+
+We can plot the same treatment contrasts, but plotted on response scale. Main advantage on the response scale is the deviations can be interpreted more easily for those who understand what the sociability score is measuring. As it is backtransformed to the response scale from the log scale the point of comparison is $e^0 = 1$. Reduction in sociability score due to the RNAi could be a bit harder to evaluate now (IMHO), but the differences are small enough that it may be pretty straightforward either way. Take your pick.
+
+
+```{r}
+treatment_contrasts_mod1 <- contrast(model_estimates, "trt.vs.ctrl1")
+
+confint(treatment_contrasts_mod1)
+
+plot(treatment_contrasts_mod1, horizontal = FALSE) + 
+  geom_vline(xintercept = 1, lty = 2, alpha = 0.5) +
+  xlab("contrast estimate") +
+  ylab("Gene knockdown contrast") +
+  theme_bw_alt()
+```
+
+
+Same plot, re-ordered by direction & magnitude of effects
+```{r}
+treatment_contrasts_mod1_df <- as.data.frame(confint(treatment_contrasts_mod1))
+
+ggplot(treatment_contrasts_mod1_df, aes(y = ratio, x = fct_reorder2(gene_names4, Sex, ratio, .desc = FALSE))) + 
+  geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_hline(yintercept = 1, lty = 2, alpha = 0.5) +
+  facet_wrap(~Sex, nrow = 2, strip.position = "right") +
+  xlab("RNAi") +
+  ylab("treatment contrast (ratio)") +
+  theme_bw_alt()
+```
+
+
+
+
+### Treatment contrast averaged over sex
+Should we present this in concert with the sex specific effects? It is clear there are some genes where the sex effects are really important.
+```{r}
+model_estimates_sex_averaged_log <- emmeans(lmm_full_tweedie, ~ RNAi) 
+
+treatment_contrasts_mod1_sex_averaged_log <- contrast(model_estimates_sex_averaged_log, "trt.vs.ctrl1")
+
+confint(treatment_contrasts_mod1_sex_averaged_log)
+
+plot(treatment_contrasts_mod1_sex_averaged_log, horizontal = FALSE) + 
+  geom_vline(xintercept = 0, lty = 2, alpha = 0.5) +
+  xlab("contrast estimate") +
+  ylab("Gene knockdown contrast") +
+  theme_bw_alt()
+```
+
+
+Nicer version of the plot
+```{r}
+treatment_contrasts_mod1_log_sex_averaged_df <- as.data.frame(confint(treatment_contrasts_mod1_sex_averaged_log))
+
+gene_names <- as.character(treatment_contrasts_mod1_log_sex_averaged_df$contrast)
+gene_names2 <- gsub(pattern = " - control", replacement = "", x = gene_names)
+gene_names3 <- gsub(pattern = "\\(", replacement = "", x = gene_names2)
+gene_names4 <- gsub(pattern = "\\)", replacement = "", x = gene_names3)
+
+
+treatment_contrasts_mod1_log_sex_averaged_df$genes <- gene_names4
+```
+
+
+
+### A different version of the plot
+
+```{r}
+ggplot(treatment_contrasts_mod1_log_sex_averaged_df, aes(y = estimate, x = fct_reorder(genes, estimate, .desc = FALSE))) + 
+  geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  scale_color_grey(start = 0, end = 0.55) +
+  geom_hline(yintercept = 0, lty = 2, alpha = 0.5) +
+  xlab("Gene Knockdown") +
+  ylab("∆Sociability Score (RNAi - control)") +
+  theme_bw_alt_it()
+```
+
+
+### Interaction contrasts to assess how sexes differ in response to the RNAi
+
+```{r}
+interaction_contrasts <- contrast(model_estimates_log, 
+                                  interaction = c(RNAi = "trt.vs.ctrl1", Sex = "pairwise"),
+                                  adjust = "dunnettx", by = NULL)
+
+
+interaction_contrasts
+confint(interaction_contrasts)
+
+plot(interaction_contrasts, horizontal = FALSE) + 
+  geom_vline(xintercept = 0, lty = 2, alpha = 0.5) +
+  xlab("contrast estimate") +
+  ylab("interaction contrasts") +
+  theme_bw_alt()
+```
+
+To visualize the sex differences of the RNAi perturbation on sociability
+```{r}
+interaction_contrasts_log_df <- as.data.frame(confint(interaction_contrasts))
+
+ggplot(interaction_contrasts_log_df, aes(y = estimate, x = fct_reorder(RNAi_trt.vs.ctrl1, estimate, .desc = FALSE))) + 
+  geom_pointrange(aes(ymin = asymp.LCL, ymax = asymp.UCL)) +
+  geom_hline(yintercept = 0, lty = 2, alpha = 0.5) +
+  xlab("Gene knockdown") +
+  ylab("interaction contrast (F - M)") +
+  theme_bw_alt()
+```
+
+### alternative plots
+Not sure this plot is super useful. But here it is
+```{r}
+emmip(model_estimates, Sex ~ RNAi, CIs = TRUE, linearg = list(linetype = "solid", alpha = 0.01)) +
+  ylab("Sociability Score") +
+  xlab("Gene Knockdown") +
+  theme_bw_alt()
+```
+
+
+
+## Model with control data only, to assess inter-block variation
+
+Note, this is with REML as I want to assess the variation in experimental block. This is mostly for Reuven Dukas who wanted a sense of among block variation.
+```{r}
+lmm_control_tweedie <- glmmTMB(Soc_index ~ Time_C + Sex
+              + (1|ExperimentalBlock) + (1 | Day) + (1 + Time_C|Day:Arena) ,
+               family = tweedie(link = "log"), REML = TRUE,
+               data = sociability_data[sociability_data$Treatment == "Control",])
+
+VarCorr(lmm_control_tweedie)
+```
+
+and a plot to help visualize this
+```{r}
+conditionalMeansBlocks <- ranef(lmm_control_tweedie, condVar = TRUE)
+
+conditionalMeansBlocks <-  as.data.frame(conditionalMeansBlocks) %>%  
+  filter(component == "cond" & grpvar == "ExperimentalBlock") %>%
+  arrange(condval)
+
+conditionalMeansBlocks$lower <- with(conditionalMeansBlocks, condval - 2*condsd)
+conditionalMeansBlocks$upper <- with(conditionalMeansBlocks, condval + 2*condsd)
+
+ggplot(conditionalMeansBlocks, aes(y = condval, x = grp)) + 
+  geom_pointrange(aes(ymin = lower, ymax = upper)) +
+  xlab("Experimental Block") +
+  ylab("conditional means (centered) for sociability score") +
+  theme_bw()
+```
+
+
+## sessionInfo
+```{r}
+sessionInfo()
+```
+

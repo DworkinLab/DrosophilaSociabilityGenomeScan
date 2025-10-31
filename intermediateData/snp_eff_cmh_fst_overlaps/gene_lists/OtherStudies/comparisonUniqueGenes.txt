@@ -1,0 +1,126 @@
+## Comparisons between our DGE, DTU and PG candidate genes
+# code
+
+wc -l Sociability_DGE_unique_genes.txt
+
+wc -l Sociability_DTU_unique_genes.txt
+
+wc -l sociability_PG_unique_genes.txt
+
+
+cat Sociability_DGE_unique_genes.txt Sociability_DTU_unique_genes.txt | sort | wc -l
+
+cat Sociability_DGE_unique_genes.txt Sociability_DTU_unique_genes.txt | sort | uniq | wc -l
+
+
+cat Sociability_DGE_unique_genes.txt sociability_PG_unique_genes.txt | sort  | wc -l
+
+
+cat Sociability_DGE_unique_genes.txt sociability_PG_unique_genes.txt | sort | uniq | wc -l
+
+
+
+cat Sociability_DTU_unique_genes.txt sociability_PG_unique_genes.txt | sort | wc -l
+
+
+cat Sociability_DTU_unique_genes.txt sociability_PG_unique_genes.txt | sort | uniq | wc -l
+
+
+
+### run with output
+wc -l Sociability_DGE_unique_genes.txt
+     328 Sociability_DGE_unique_genes.txt
+
+wc -l Sociability_DTU_unique_genes.txt
+     508 Sociability_DTU_unique_genes.txt
+
+wc -l sociability_PG_unique_genes.txt
+     169 sociability_PG_unique_genes.txt
+
+cat Sociability_DGE_unique_genes.txt Sociability_DTU_unique_genes.txt | sort | wc -l
+     836
+
+
+cat Sociability_DGE_unique_genes.txt Sociability_DTU_unique_genes.txt | sort | uniq | wc -l
+     796
+
+
+cat Sociability_DGE_unique_genes.txt sociability_PG_unique_genes.txt | sort  | wc -l
+     497
+
+
+cat Sociability_DGE_unique_genes.txt sociability_PG_unique_genes.txt | sort | uniq | wc -l
+     497
+
+
+
+cat Sociability_DTU_unique_genes.txt sociability_PG_unique_genes.txt | sort | wc -l
+     677
+
+cat Sociability_DTU_unique_genes.txt sociability_PG_unique_genes.txt | sort | uniq | wc -l
+     677
+
+
+
+## Code for comparison of our PG identified candidate genes and previous studies.
+
+
+cut -d , -f 3 ShpiglerEtAl_2017_Genes.csv | tail -n +2 > Shpigler_unique_fbgn.txt
+
+cat Shpigler_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | wc -l
+
+
+cat Shpigler_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | uniq | wc -l
+
+cat Shpigler_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | uniq -d
+
+cut -d , -f 2 braltenetAlGeneOrthologs.csv | tail -n +2 > Bratlen_unique_fbgn.txt
+
+wc -l Bratlen_unique_fbgn.txt
+
+
+cat Bratlen_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | wc -l
+
+
+cat Bratlen_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | uniq | wc -l
+
+
+cat Bratlen_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | uniq -d
+
+
+## Output
+
+cat Shpigler_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | wc -l
+     849
+
+cat Shpigler_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | uniq | wc -l
+     839
+
+cat Shpigler_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | uniq -d
+FBgn0014141
+FBgn0019960
+FBgn0036570
+FBgn0039478
+FBgn0039627
+FBgn0039633
+FBgn0041184
+FBgn0086708
+FBgn0263929
+FBgn0266098
+
+wc -l Bratlen_unique_fbgn.txt
+      40 Bratlen_unique_fbgn.txt
+
+
+cat Bratlen_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | wc -l
+     209
+
+
+cat Bratlen_unique_fbgn.txt sociability_PG_unique_genes.txt | sort  | uniq | wc -l
+     209
+
+# How many human orthologs in Dmel (fb_2025_02) based on DIOPT score of 3+
+
+cut -d , -f 1 dmel_human_orthologs_disease_fb_2025_02.csv | tail -n +2 | sort | uniq | wc -l
+
+ 9096
