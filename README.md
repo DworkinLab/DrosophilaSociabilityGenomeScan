@@ -53,7 +53,7 @@ Notes: Any other notes about the strains either from Bloomington or our own work
 
 #### Allele counts data
 
-`.sync` files of allele counts and coverage by samples. Sync files need to be regenerated from the sequencing. Split between autosomes and X chromosomes. See below for more information on how they are generated (mostly via the shell scripts) and the Rscripts for analysis.
+`.sync` files of allele counts and coverage by samples. Because of file size limitations only the .sync files for the X chromosomes are part of this repo. Sync files for autosomes need to be regenerated from the analysis pipeline. See below for more information on how they are generated (mostly via the shell scripts) and the Rscripts for analysis.
 
 #### qRT-PCR
 
