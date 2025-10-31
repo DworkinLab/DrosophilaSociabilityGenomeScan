@@ -6,6 +6,8 @@ Rosenbaum, Torabi-Marashi et al. 2025. Evolution of sociability: Genome scans an
 
 Raw Sequence data for this study is available on [NCBI SRA bioproject  PRJNA1311514](https://www.ncbi.nlm.nih.gov/sra/PRJNA1311514).
 
+A static version of this repository (frozen at time of final acceptance) is available on [Figshare](https://doi.org/10.6084/m9.figshare.30500915.v1). **Please note:** figshare has a complete copy of all of the `.sync files` (file sizes are too big for github).
+
 **Please note**: If you wish to use this pipeline for the genomic analysis, and you are new to such pipelines, before using the scripts before, you will likely find the README for the data and scripts associated with [Audet et al. 2024](https://github.com/DworkinLab/Audet_etal_Evolution_2024) a simple overview of the pipeline. Then the scripts below will likely be more useful for replicating the specific analyses from this study.
 
 
@@ -53,7 +55,7 @@ Notes: Any other notes about the strains either from Bloomington or our own work
 
 #### Allele counts data
 
-`.sync` files of allele counts and coverage by samples. Because of file size limitations only the .sync files for the X chromosomes are part of this repo. Sync files for autosomes need to be regenerated from the analysis pipeline. See below for more information on how they are generated (mostly via the shell scripts) and the Rscripts for analysis.
+`.sync` files of allele counts and coverage by samples. Because of file size limitations only the .sync files for the X chromosomes are part of this repo. Sync files for autosomes need to be regenerated from the analysis pipeline.See below for more information on how they are generated (mostly via the shell scripts) and the Rscripts for analysis. Alternatively, go to the static version of the repository on [figshare](https://doi.org/10.6084/m9.figshare.30500915.v1) which has all of the sync files.
 
 #### qRT-PCR
 
